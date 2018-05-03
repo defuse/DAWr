@@ -3,7 +3,6 @@ use std::rc::Rc;
 use clock::Clock;
 use consts;
 
-// BUG XXX: cursor shouldn't update until the clock changes!
 pub struct EventSource<T> {
     clock: Rc<Clock>,
     events: Vec<(u64, T)>,
@@ -18,8 +17,7 @@ impl<T> EventSource<T> {
             clock: clock,
             events: events,
             cursor: Cell::new(0),
-            // FIXME this is ugly
-            last_time: Cell::new(0xFFFFFFFFFFFFFFFF)
+            last_time: Cell::new(consts::TIME_INFINITY)
         }
     }
 

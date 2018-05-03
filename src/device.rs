@@ -3,10 +3,6 @@ use std::rc::Rc;
 use clock::Clock;
 use consts;
 
-// TODO: fix this hack
-// TODO: make it fail gracefully when counter overflows
-const NEVER_OUTPUT : u64 = 0xFFFFFFFFFFFFFFFF;
-
 pub struct StateContainer<T> {
     clock: Rc<Clock>,
     output_time: Cell<u64>,
@@ -18,7 +14,7 @@ impl<T> StateContainer<T> {
     pub fn new(clock: Rc<Clock>, state: T) -> Self {
         Self {
             clock: clock,
-            output_time: Cell::new(NEVER_OUTPUT),
+            output_time: Cell::new(consts::TIME_INFINITY),
             output: RefCell::new(vec![0.0; consts::CHUNK_SIZE]),
             state: RefCell::new(state)
         }
@@ -54,7 +50,6 @@ pub trait SignalEmitter {
     fn output(&self) -> Ref<Vec<f32>>;
 }
 
-// XXX: HACCCKKKK uglyyyy
 pub struct StereoStateContainer<T> {
     clock: Rc<Clock>,
     output_time: Cell<u64>,
@@ -67,7 +62,7 @@ impl<T> StereoStateContainer<T> {
     pub fn new(clock: Rc<Clock>, state: T) -> Self {
         Self {
             clock: clock,
-            output_time: Cell::new(NEVER_OUTPUT),
+            output_time: Cell::new(consts::TIME_INFINITY),
             left: RefCell::new(vec![0.0; consts::CHUNK_SIZE]),
             right: RefCell::new(vec![0.0; consts::CHUNK_SIZE]),
             state: RefCell::new(state)

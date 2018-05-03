@@ -5,78 +5,15 @@ use device::*;
 use clock::Clock;
 use events::EventSource;
 use consts;
-
 use std::cell::*;
+
+// Provides full-resolution down to 21 Hz for 44.1kHz sample rate.
+const WAVE_SAMPLES : usize = 2010;
 
 pub enum NoteEvent {
     NoteOn(f32),
     NoteOff
 }
-
-pub struct StupidOsc {
-    device : device::StateContainer<StupidOscState>,
-    event_source: Rc<EventSource<NoteEvent>>
-}
-
-struct StupidOscState {
-    position: u64,
-    on: bool,
-    freq: f32
-}
-
-impl StupidOsc {
-    pub fn new(clock: Rc<Clock>, event_source: Rc<EventSource<NoteEvent>>) -> Self {
-        Self {
-            device: device::StateContainer::<StupidOscState>::new(clock, StupidOscState { position: 0, on: false, freq: 0.0 }),
-            event_source: event_source
-        }
-    }
-}
-
-impl device::SignalEmitter for StupidOsc {
-    fn output(&self) -> Ref<Vec<f32>> {
-        if self.device.clock_advanced() {
-            self.device.mark_as_up_to_date();
-
-            let events = self.event_source.events_this_chunk();
-            let mut cursor = 0;
-
-            let mut chunk = self.device.borrow_to_modify();
-            let mut state = self.device.borrow_state_mut();
-
-            for i in 0..chunk.len() {
-                if cursor < events.len() && events[cursor].0 == self.device.time() + i as u64 {
-                    match events[cursor].1 {
-                        NoteEvent::NoteOff => {
-                            state.on = false;
-                            state.position = 0;
-                        },
-                        NoteEvent::NoteOn(freq) => {
-                            state.on = true;
-                            state.freq = freq;
-                        }
-                    }
-                    cursor += 1
-                }
-                if state.on {
-                    let samples_per_period = consts::SAMPLE_RATE as f32 / state.freq;
-                    chunk[i] = 1.0 - 2.0 * (state.position as f32 / samples_per_period);
-                    state.position += 1;
-                    if state.position as f32 >= samples_per_period {
-                        state.position = 0;
-                    }
-                } else {
-                    chunk[i] = 0.0;
-                }
-            }
-        }
-        self.device.borrow_output()
-    }
-}
-
-// Provides full-resolution down to 21 Hz for 44.1kHz sample rate.
-const WAVE_SAMPLES : usize = 2010;
-
 
 #[derive(Clone)]
 pub struct Wave {
@@ -98,11 +35,12 @@ impl Wave {
 #[derive(Clone)]
 pub struct WaveTable {
     waves: Vec<Wave>
+    // TODO: ensure that waves.len() == WAVE_SAMPLES
 }
 
 impl WaveTable {
     pub fn new(waves: Vec<Wave>) -> Self {
-        assert!(waves.len() != 0);
+        assert!(waves.len() >= 1);
         Self { waves }
     }
 }
@@ -161,8 +99,7 @@ impl SignalEmitter for Envelope {
 pub struct Oscillator {
     device: StateContainer<OscillatorState>,
     note_events: Rc<EventSource<NoteEvent>>,
-    detune_multiplier: Rc<SignalEmitter>
-    // TODO: retrigger
+    detune_multiplier: Rc<SignalEmitter>,
 }
 
 struct OscillatorState {
@@ -178,15 +115,8 @@ impl Oscillator {
             detune_multiplier
         }
     }
-
-    //fn retrigger(&mut self, event_source: Rc<EventSource<NoteEvent>>) {
-    //    self.retrigger = Some(event_source)
-    //}
 }
 
-// TODO: instead of this pattern with 'device', we could probably implement output() in the trait
-// itself and just require an implementation of some function that takes an &mut to the buffer and
-// an &mut to the state.
 
 impl SignalEmitter for Oscillator {
     fn output(&self) -> Ref<Vec<f32>> {
@@ -208,7 +138,6 @@ impl SignalEmitter for Oscillator {
                         },
                         NoteEvent::NoteOn(freq) => {
                             state.frequency = freq;
-                            // TODO: make it possible to turn retrigger off.
                             state.position = 0.0;
                         }
                     }
@@ -236,8 +165,6 @@ pub struct MonoSynth {
     wavetable_position: Rc<SignalEmitter>,
     // Values in [0, 1].
     envelope: Rc<SignalEmitter>,
-
-    // TODO: use the oscillator for detune, and Pan to pan the osc
 }
 
 impl MonoSynth {
@@ -251,8 +178,6 @@ impl MonoSynth {
         }
     }
 }
-
-// FUCK XXX TODO Everything is MONO! 
 
 impl StereoEmitter for MonoSynth {
     fn output(&self) -> (Ref<Vec<f32>>, Ref<Vec<f32>>) {
