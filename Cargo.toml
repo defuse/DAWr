@@ -1,0 +1,7 @@
+[package]
+name = "dawr"
+version = "0.1.0"
+authors = ["Taylor Hornby <taylor@defuse.ca>"]
+
+[dependencies]
+portaudio = "0.7"
