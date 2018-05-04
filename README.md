@@ -12,9 +12,8 @@ suggestions and pull requests!
 
 The feature set is limited, but it's enough to make a shitty future bass drop
 section in Rust! You can find code for this in
-[src/bin/demotrack.rs](src/bin/demotrack.rs). Here's what it sounds like:
-
-TODO: export to wav and upload to soundcloud
+[src/bin/demotrack.rs](src/bin/demotrack.rs). Here's what it [sounds like (on
+SoundCloud)](https://soundcloud.com/earthrise5/dawr-library-example).
 
 **WARNING:** This library doesn't have any unit tests! There are probably bugs!
 
