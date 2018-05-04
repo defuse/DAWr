@@ -42,7 +42,6 @@ fn run() -> Result<(), pa::Error> {
 
     let mut m = TimeCalculator::new(160.0);
     for bar in 0..8 {
-        // TODO: instead of adding bars everywhere just add a bar to m
         let bass_speed = {
             if bar % 2 == 0 {
                 1.0
