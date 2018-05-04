@@ -42,17 +42,17 @@ fn run() -> Result<(), pa::Error> {
 
     let mut m = TimeCalculator::new(160.0);
     for bar in 0..16 {
-        let bass_speed = {
-            if bar % 2 == 0 {
-                1.0
-            } else {
-                1.5
-            }
-        };
-        bassevents.push((m.time(), SamplerEvent::PlayAtSpeed(bass_speed)));
         for beat in 0..4 {
             if (bar % 2 == 0 && beat == 0) || (bar % 2 == 1 && beat == 1) || (bar % 4 == 1 && beat == 3)  {
                 kickevents.push((m.add_quarters(beat as f64).time(), SamplerEvent::Play));
+                let bass_speed = {
+                    if bar % 2 == 0 {
+                        1.0
+                    } else {
+                        1.5
+                    }
+                };
+                bassevents.push((m.add_quarters(beat as f64).time(), SamplerEvent::PlayAtSpeed(bass_speed)));
             }
             if beat == 2 {
                 snareevents.push((m.add_quarters(beat as f64).time(), SamplerEvent::Play));
@@ -70,20 +70,6 @@ fn run() -> Result<(), pa::Error> {
 
         match bar % 4 {
             0 => {
-                // i7
-                notes_a.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ)));
-                notes_a.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
-
-                notes_b.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ * half_step.powf(3.0) )));
-                notes_b.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
-
-                notes_c.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ * half_step.powf(7.0) )));
-                notes_c.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
-
-                notes_d.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ * half_step.powf(10.0))));
-                notes_d.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
-            },
-            2 => {
                 // III7
                 let shift = half_step.powf(3.0);
                 for i in 0..4 {
@@ -99,6 +85,20 @@ fn run() -> Result<(), pa::Error> {
                     notes_d.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(shift*8.0*E1_FREQ * half_step.powf(11.0) )));
                     notes_d.push((m.add_eighths(i as f64).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
                 }
+            },
+            2 => {
+                // i7
+                notes_a.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ)));
+                notes_a.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
+
+                notes_b.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ * half_step.powf(3.0) )));
+                notes_b.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
+
+                notes_c.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ * half_step.powf(7.0) )));
+                notes_c.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
+
+                notes_d.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ * half_step.powf(10.0))));
+                notes_d.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
             },
             1 | 3 => {
                 let fifth = half_step.powf(7.0);
@@ -158,7 +158,7 @@ fn run() -> Result<(), pa::Error> {
     let bass = Gain::new(
         c.clone(),
         Sampler::new(c.clone(), EventSource::new(bassevents, c.clone()), bass_l, bass_r),
-        ConstSignal::new(c.clone(), decibels(0.0))
+        ConstSignal::new(c.clone(), decibels(6.0))
     );
 
     let note_channels = vec![notes_a, notes_b, notes_c, notes_d];
