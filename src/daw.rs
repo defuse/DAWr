@@ -48,11 +48,11 @@ impl StereoEmitter for Mixer {
 pub struct Gain {
     device: StereoStateContainer<()>,
     input: Rc<StereoEmitter>,
-    boost: Rc<SignalEmitter>
+    boost: Rc<MonoEmitter>
 }
 
 impl Gain {
-    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, boost: Rc<SignalEmitter>) -> Self {
+    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, boost: Rc<MonoEmitter>) -> Self {
         Self { device: StereoStateContainer::<()>::new(clock, ()), input, boost }
     }
 }
@@ -79,17 +79,17 @@ impl StereoEmitter for Gain {
 }
 
 pub struct ConstSignal {
-    device: StateContainer<()>,
+    device: MonoStateContainer<()>,
     value: f32
 }
 
 impl ConstSignal {
     pub fn new(clock: Rc<Clock>, value: f32) -> Self {
-        Self { device: StateContainer::<()>::new(clock, ()), value: value }
+        Self { device: MonoStateContainer::<()>::new(clock, ()), value: value }
     }
 }
 
-impl SignalEmitter for ConstSignal {
+impl MonoEmitter for ConstSignal {
     fn output(&self) -> Ref<Vec<f32>> {
         if self.device.clock_advanced() {
             self.device.mark_as_up_to_date();
@@ -106,11 +106,11 @@ impl SignalEmitter for ConstSignal {
 pub struct Pan {
     device: StereoStateContainer<()>,
     input: Rc<StereoEmitter>,
-    position: Rc<SignalEmitter>,
+    position: Rc<MonoEmitter>,
 }
 
 impl Pan {
-    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, position: Rc<SignalEmitter>) -> Self {
+    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, position: Rc<MonoEmitter>) -> Self {
         Self { device: StereoStateContainer::<()>::new(clock, ()), input, position }
     }
 }
@@ -136,6 +136,126 @@ impl StereoEmitter for Pan {
                 } else {
                     // do nothing
                 }
+            }
+        }
+        self.device.borrow_output()
+    }
+}
+
+pub struct MonoToStereo {
+    device: StereoStateContainer<()>,
+    input: Rc<MonoEmitter>
+}
+
+impl MonoToStereo {
+    pub fn new(clock: Rc<Clock>, input: Rc<MonoEmitter>) -> Self {
+        Self {
+            device: StereoStateContainer::<()>::new(clock, ()),
+            input
+        }
+    }
+}
+
+impl StereoEmitter for MonoToStereo {
+    fn output(&self) -> (Ref<Vec<f32>>, Ref<Vec<f32>>) {
+        if self.device.clock_advanced() {
+            self.device.mark_as_up_to_date();
+
+            let output = self.input.output();
+            let mut left = self.device.borrow_left_to_modify();
+            let mut right = self.device.borrow_right_to_modify();
+
+            for i in 0..consts::CHUNK_SIZE {
+                // TODO: I'm not sure if this is the right algorithm, but when you sum the channels
+                // to mono you should recover the same signal.
+                left[i] = 0.5*output[i];
+                right[i] = 0.5*output[i];
+            }
+        }
+        self.device.borrow_output()
+    }
+}
+
+pub struct StereoToMono {
+    device: MonoStateContainer<()>,
+    input: Rc<StereoEmitter>
+}
+
+impl StereoToMono {
+    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>) -> Self {
+        Self {
+            device: MonoStateContainer::<()>::new(clock, ()),
+            input
+        }
+    }
+}
+
+impl MonoEmitter for StereoToMono {
+    fn output(&self) -> Ref<Vec<f32>> {
+        if self.device.clock_advanced() {
+            self.device.mark_as_up_to_date();
+
+            let mut output = self.device.borrow_to_modify();
+            let left = self.input.output().0;
+            let right = self.input.output().1;
+
+            for i in 0..consts::CHUNK_SIZE {
+                output[i] = left[i] + right[i];
+            }
+        }
+        self.device.borrow_output()
+    }
+}
+
+
+pub trait WaveShaper {
+    fn shape(&self, sample: f32) -> f32;
+}
+
+pub struct HardClipper {
+}
+
+impl WaveShaper for HardClipper {
+    fn shape(&self, sample: f32) -> f32 {
+        if (sample > 1.0) {
+            1.0
+        } else if (sample < -1.0) {
+            -1.0
+        } else {
+            sample
+        }
+    }
+}
+
+pub struct WaveShaperEffect {
+    device: StereoStateContainer<()>,
+    input: Rc<StereoEmitter>,
+    shaper: Rc<WaveShaper>
+}
+
+impl WaveShaperEffect {
+    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, shaper: Rc<WaveShaper>) -> Self {
+        Self {
+            device: StereoStateContainer::<()>::new(clock, ()),
+            input,
+            shaper
+        }
+    }
+}
+
+impl StereoEmitter for WaveShaperEffect {
+    fn output(&self) -> (Ref<Vec<f32>>, Ref<Vec<f32>>) {
+        if self.device.clock_advanced() {
+            self.device.mark_as_up_to_date();
+
+            let input_left = self.input.output().0;
+            let input_right = self.input.output().1;
+            let mut left = self.device.borrow_left_to_modify();
+            let mut right = self.device.borrow_right_to_modify();
+
+            for i in 0..consts::CHUNK_SIZE {
+                left[i] = self.shaper.shape(input_left[i]);
+                right[i] = self.shaper.shape(input_right[i]);
             }
         }
         self.device.borrow_output()

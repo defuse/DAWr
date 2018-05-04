@@ -46,7 +46,7 @@ impl WaveTable {
 }
 
 pub struct Envelope {
-    device: StateContainer<EnvelopeState>,
+    device: MonoStateContainer<EnvelopeState>,
     // TODO: attack and release
     note_events: Rc<EventSource<NoteEvent>>
 }
@@ -57,11 +57,11 @@ struct EnvelopeState {
 
 impl Envelope {
     pub fn new (clock: Rc<Clock>, note_events: Rc<EventSource<NoteEvent>>) -> Self {
-        Self { device: StateContainer::<EnvelopeState>::new(clock, EnvelopeState { on: false }), note_events }
+        Self { device: MonoStateContainer::<EnvelopeState>::new(clock, EnvelopeState { on: false }), note_events }
     }
 }
 
-impl SignalEmitter for Envelope {
+impl MonoEmitter for Envelope {
     fn output(&self) -> Ref<Vec<f32>> {
         if self.device.clock_advanced() {
             self.device.mark_as_up_to_date();
@@ -97,9 +97,9 @@ impl SignalEmitter for Envelope {
 }
 
 pub struct Oscillator {
-    device: StateContainer<OscillatorState>,
+    device: MonoStateContainer<OscillatorState>,
     note_events: Rc<EventSource<NoteEvent>>,
-    detune_multiplier: Rc<SignalEmitter>,
+    detune_multiplier: Rc<MonoEmitter>,
 }
 
 struct OscillatorState {
@@ -108,9 +108,9 @@ struct OscillatorState {
 }
 
 impl Oscillator {
-    pub fn new(clock: Rc<Clock>, note_events: Rc<EventSource<NoteEvent>>, detune_multiplier: Rc<SignalEmitter>) -> Self {
+    pub fn new(clock: Rc<Clock>, note_events: Rc<EventSource<NoteEvent>>, detune_multiplier: Rc<MonoEmitter>) -> Self {
         Self {
-            device: StateContainer::<OscillatorState>::new(clock, OscillatorState { position: 0.0, frequency: 0.0 }),
+            device: MonoStateContainer::<OscillatorState>::new(clock, OscillatorState { position: 0.0, frequency: 0.0 }),
             note_events,
             detune_multiplier
         }
@@ -118,7 +118,7 @@ impl Oscillator {
 }
 
 
-impl SignalEmitter for Oscillator {
+impl MonoEmitter for Oscillator {
     fn output(&self) -> Ref<Vec<f32>> {
         if self.device.clock_advanced() {
             self.device.mark_as_up_to_date();
@@ -157,20 +157,20 @@ impl SignalEmitter for Oscillator {
 }
 
 pub struct MonoSynth {
-    device: StereoStateContainer<()>,
+    device: MonoStateContainer<()>,
     wavetable: WaveTable,
     // Values in [0, WAVE_SAMPLES)
-    oscillator: Rc<SignalEmitter>,
+    oscillator: Rc<MonoEmitter>,
     // Values in [0, 1], 0 being the first wave, 1 being the last.
-    wavetable_position: Rc<SignalEmitter>,
+    wavetable_position: Rc<MonoEmitter>,
     // Values in [0, 1].
-    envelope: Rc<SignalEmitter>,
+    envelope: Rc<MonoEmitter>,
 }
 
 impl MonoSynth {
-    pub fn new(clock: Rc<Clock>, wavetable: WaveTable, oscillator: Rc<SignalEmitter>, wavetable_position: Rc<SignalEmitter>, envelope: Rc<SignalEmitter>) -> Self {
+    pub fn new(clock: Rc<Clock>, wavetable: WaveTable, oscillator: Rc<MonoEmitter>, wavetable_position: Rc<MonoEmitter>, envelope: Rc<MonoEmitter>) -> Self {
         Self {
-            device: StereoStateContainer::<()>::new(clock, ()),
+            device: MonoStateContainer::<()>::new(clock, ()),
             wavetable,
             oscillator,
             wavetable_position,
@@ -179,13 +179,12 @@ impl MonoSynth {
     }
 }
 
-impl StereoEmitter for MonoSynth {
-    fn output(&self) -> (Ref<Vec<f32>>, Ref<Vec<f32>>) {
+impl MonoEmitter for MonoSynth {
+    fn output(&self) -> Ref<Vec<f32>> {
         if self.device.clock_advanced() {
             self.device.mark_as_up_to_date();
 
-            let mut left = self.device.borrow_left_to_modify();
-            let mut right = self.device.borrow_right_to_modify();
+            let mut output = self.device.borrow_to_modify();
 
             let wave_position = self.oscillator.output();
             let wavetable_position = self.wavetable_position.output();
@@ -193,10 +192,9 @@ impl StereoEmitter for MonoSynth {
 
             // TODO: actually implement wavetable position
             for i in 0..consts::CHUNK_SIZE {
-                left[i] = amplitude[i] * self.wavetable.waves[
+                output[i] = amplitude[i] * self.wavetable.waves[
                     0
                     ].samples[wave_position[i] as usize];
-                right[i] = left[i];
             }
 
         }

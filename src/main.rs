@@ -69,13 +69,22 @@ fn run() -> Result<(), pa::Error> {
     let n1 = Rc::new(MonoSynth::new(c.clone(), wavetable.clone(), oscillator1.clone(), wavetable_position.clone(), envelope.clone()));
     let n2 = Rc::new(MonoSynth::new(c.clone(), wavetable.clone(), oscillator2.clone(), wavetable_position.clone(), envelope.clone()));
 
+    let n1s = Rc::new(MonoToStereo::new(c.clone(), n1.clone()));
+    let n2s = Rc::new(MonoToStereo::new(c.clone(), n2.clone()));
+
     let left = Rc::new(ConstSignal::new(c.clone(), -1.0));
     let right = Rc::new(ConstSignal::new(c.clone(), 1.0));
 
-    let nn1 = Rc::new(Pan::new(c.clone(), n1, left));
-    let nn2 = Rc::new(Pan::new(c.clone(), n2, right));
+    let nn1 = Rc::new(Pan::new(c.clone(), n1s, left));
+    let nn2 = Rc::new(Pan::new(c.clone(), n2s, right));
 
-    let mix = Rc::new(Mixer::new(c.clone(), vec![nn1, nn2]));
+    let nn1shaped = Rc::new(WaveShaperEffect::new(
+            c.clone(),
+            Rc::new(Gain::new(c.clone(), nn1.clone(), Rc::new(ConstSignal::new(c.clone(), 8.0)))),
+            Rc::new(HardClipper { })
+        ));
+
+    let mix = Rc::new(Mixer::new(c.clone(), vec![nn1shaped, nn2]));
     let tenth = Rc::new(ConstSignal::new(c.clone(), 1.0));
     let master = Rc::new(Gain::new(c.clone(), mix.clone(), tenth.clone()));
 
@@ -93,6 +102,9 @@ fn run() -> Result<(), pa::Error> {
         let right = master.output().1;
         assert_eq!(frames, consts::CHUNK_SIZE);
         for f in 0..frames {
+            if left[f].abs() > 1.0 || right[f].abs() > 1.0 {
+                println!("WARNING: The signal is clipping!");
+            }
             buffer[2*f] = left[f];
             buffer[2*f+1] = right[f];
         }

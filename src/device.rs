@@ -3,14 +3,14 @@ use std::rc::Rc;
 use clock::Clock;
 use consts;
 
-pub struct StateContainer<T> {
+pub struct MonoStateContainer<T> {
     clock: Rc<Clock>,
     output_time: Cell<u64>,
     output: RefCell<Vec<f32>>,
     state: RefCell<T>
 }
 
-impl<T> StateContainer<T> {
+impl<T> MonoStateContainer<T> {
     pub fn new(clock: Rc<Clock>, state: T) -> Self {
         Self {
             clock: clock,
@@ -45,7 +45,7 @@ impl<T> StateContainer<T> {
     }
 }
 
-pub trait SignalEmitter {
+pub trait MonoEmitter {
     // The returned Ref must go out of scope before output() can be called again.
     fn output(&self) -> Ref<Vec<f32>>;
 }
