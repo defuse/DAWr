@@ -1,4 +1,5 @@
 
+extern crate rand;
 
 pub mod clock;
 pub mod consts;
@@ -111,6 +112,9 @@ fn run() -> Result<(), pa::Error> {
     let nn1 = Rc::new(Pan::new(c.clone(), n1s, left));
     let nn2 = Rc::new(Pan::new(c.clone(), n2s, right));
 
+    let noise = Rc::new(WhiteNoise::new(c.clone()));
+    let noise_gained = Rc::new(Gain::new(c.clone(), noise.clone(), envelope.clone()));
+
     let nn1shaped = Rc::new(WaveShaperEffect::new(
             c.clone(),
             Rc::new(Gain::new(c.clone(), nn1.clone(), Rc::new(ConstSignal::new(c.clone(), decibels(0.0))))),
@@ -123,7 +127,7 @@ fn run() -> Result<(), pa::Error> {
             Rc::new(HardClipper { })
         ));
 
-    let mix = Rc::new(Mixer::new(c.clone(), vec![nn1shaped, nn2shaped, gn5]));
+    let mix = Rc::new(Mixer::new(c.clone(), vec![nn1shaped, nn2shaped, gn5, noise_gained]));
     let mastergain = Rc::new(ConstSignal::new(c.clone(), decibels(-20.0)));
     let master = Rc::new(Gain::new(c.clone(), mix.clone(), mastergain.clone()));
 

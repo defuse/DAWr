@@ -1,3 +1,4 @@
+use rand;
 
 use std::rc::Rc;
 use device;
@@ -227,3 +228,33 @@ impl MonoEmitter for MonoSynth {
     }
 }
 
+
+pub struct WhiteNoise {
+    device: StereoStateContainer<()>
+}
+
+impl WhiteNoise {
+    pub fn new(clock: Rc<Clock>) -> Self {
+        Self {
+            device: StereoStateContainer::new(clock, ())
+        }
+    }
+}
+
+impl StereoEmitter for WhiteNoise {
+    fn output(&self) -> (Ref<Vec<f32>>, Ref<Vec<f32>>) {
+        if self.device.clock_advanced() {
+            self.device.mark_as_up_to_date();
+
+            let mut left = self.device.borrow_left_to_modify();
+            let mut right = self.device.borrow_right_to_modify();
+            let mut state = self.device.borrow_state_mut();
+
+            for i in 0..consts::CHUNK_SIZE {
+                left[i] = 1.0 - 2.0 * rand::random::<f32>();
+                right[i] = 1.0 - 2.0 * rand::random::<f32>();
+            }
+        }
+        self.device.borrow_output()
+    }
+}

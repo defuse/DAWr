@@ -5,3 +5,4 @@ authors = ["Taylor Hornby <taylor@defuse.ca>"]
 
 [dependencies]
 portaudio = "0.7"
+rand = "0.4"
