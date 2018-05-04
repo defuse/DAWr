@@ -3,7 +3,7 @@
 DAWr (pronounced "door") is an audio playground for people who like to write
 Rust code. It has some features of a simple DAW, including a build-in wavetable
 synthesizer, sampler, and basic audio effects. However, it's still missing
-a lot: there's no equalizer, the sampler only works in one-shot mode, etc.
+a lot: there's no equalizer, the sampler only works in one-shot mode, and more.
 I don't plan on adding new features for the time being, but I'd appreciate
 suggestions and pull requests!
 
