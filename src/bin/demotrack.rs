@@ -1,25 +1,15 @@
-
-extern crate rand;
+extern crate dawr;
 extern crate portaudio;
-extern crate hound;
 
-pub mod clock;
-pub mod consts;
-pub mod synth;
-pub mod events;
-pub mod device;
-pub mod effects;
-pub mod conversions;
-pub mod sampler;
-pub mod files;
-
-use clock::*;
-use synth::*;
-use events::*;
-use device::*;
-use effects::*;
-use conversions::*;
-use sampler::*;
+use dawr::clock::*;
+use dawr::synth::*;
+use dawr::events::*;
+use dawr::device::*;
+use dawr::effects::*;
+use dawr::conversions::*;
+use dawr::sampler::*;
+use dawr::files;
+use dawr::consts;
 use std::rc::Rc;
 
 use portaudio as pa;
@@ -197,29 +187,8 @@ fn run() -> Result<(), pa::Error> {
         ConstSignal::new(c.clone(), decibels(-10.0))
     );
 
-    fn render_audio(clock: Rc<Clock>, master: Rc<StereoEmitter>, length: usize) -> (Vec<f32>, Vec<f32>) {
-        let mut left = Vec::<f32>::new();
-        let mut right = Vec::<f32>::new();
-
-        while left.len() < length {
-            assert!(master.output().0.len() == master.output().1.len());
-            for i in 0..master.output().0.len() {
-                left.push(master.output().0[i]);
-                right.push(master.output().1[i]);
-            }
-            clock.increment();
-        }
-
-        assert!(left.len() == right.len());
-
-        left.truncate(length);
-        right.truncate(length);
-
-        (left, right)
-    }
-
     println!("Rendering audio...");
-    let (left, right) = render_audio(c, master, TimeCalculator::new(160.0).add_bars(8.0).time() as usize);
+    let (left, right) = dawr::render_audio(c, master, TimeCalculator::new(160.0).add_bars(8.0).time() as usize);
 
     let pa = try!(pa::PortAudio::new());
     let mut settings = try!(pa.default_output_stream_settings(
