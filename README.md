@@ -31,11 +31,13 @@ can use the same device as input.
 
 Here is a list of all the built-in devices:
 
-### Signal Utilities
+### Mono Sources
 
 - `ConstSignal`: Outputs a constant-valued mono signal.
-- `Evelope`: Listens for `NoteOn` events and outputs 0.0 when there are no notes
+- `Envelope`: Listens for `NoteOn` events and outputs 0.0 when there are no notes
   playing and 1.0 while a note is playing.
+- `Oscillator`: For use with `MonoSynth`, outputs the current phase of the wave
+  being played.
 
 ### Instruments
 
