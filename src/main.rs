@@ -1,5 +1,7 @@
 
 extern crate rand;
+extern crate portaudio;
+extern crate hound;
 
 pub mod clock;
 pub mod consts;
@@ -8,6 +10,8 @@ pub mod events;
 pub mod device;
 pub mod effects;
 pub mod conversions;
+pub mod sampler;
+pub mod files;
 
 use clock::*;
 use synth::*;
@@ -15,10 +19,11 @@ use events::*;
 use device::*;
 use effects::*;
 use conversions::*;
+use sampler::*;
+use std::rc::Rc;
 
 use portaudio as pa;
 
-extern crate portaudio;
 
 fn main() {
     match run() {
@@ -33,101 +38,188 @@ fn main() {
 
 fn run() -> Result<(), pa::Error> {
     let c = Clock::new();
-    let m = TimeCalculator::new(120.0);
 
-    let mut events = Vec::<(u64, NoteEvent)>::new();
-    events.push((m.add_bars(0.0).add_sixteenths(0.0).time(), NoteEvent::NoteOn(220.0)));
-    events.push((m.add_bars(0.0).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
-    events.push((m.add_bars(0.0).add_sixteenths(2.0).time(), NoteEvent::NoteOn(440.0)));
-    events.push((m.add_bars(0.0).add_sixteenths(3.0).time(), NoteEvent::NoteOff));
-    events.push((m.add_bars(0.0).add_sixteenths(4.0).time(), NoteEvent::NoteOn(220.0)));
-    events.push((m.add_bars(0.0).add_sixteenths(5.0).time(), NoteEvent::NoteOff));
-    events.push((m.add_bars(0.0).add_sixteenths(6.0).time(), NoteEvent::NoteOn(440.0)));
-    events.push((m.add_bars(0.0).add_sixteenths(7.0).time(), NoteEvent::NoteOff));
-    events.push((m.add_bars(0.0).add_sixteenths(8.0).time(), NoteEvent::NoteOn(220.0)));
-    events.push((m.add_bars(0.0).add_sixteenths(16.0).time(), NoteEvent::NoteOff));
-    events.push((m.add_bars(1.0).add_sixteenths(0.0).time(), NoteEvent::NoteOn(440.0)));
-    events.push((m.add_bars(1.0).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
-    events.push((m.add_bars(1.0).add_sixteenths(2.0).time(), NoteEvent::NoteOn(220.0)));
-    events.push((m.add_bars(1.0).add_sixteenths(3.0).time(), NoteEvent::NoteOff));
-    events.push((m.add_bars(1.0).add_sixteenths(4.0).time(), NoteEvent::NoteOn(440.0)));
-    events.push((m.add_bars(1.0).add_sixteenths(5.0).time(), NoteEvent::NoteOff));
-    events.push((m.add_bars(1.0).add_sixteenths(6.0).time(), NoteEvent::NoteOn(220.0)));
-    events.push((m.add_bars(1.0).add_sixteenths(7.0).time(), NoteEvent::NoteOff));
-    events.push((m.add_bars(1.0).add_sixteenths(8.0).time(), NoteEvent::NoteOn(440.0)));
-    events.push((m.add_bars(1.0).add_sixteenths(16.0).time(), NoteEvent::NoteOff));
+    let mut kickevents = Vec::<(u64, SamplerEvent)>::new();
+    let mut snareevents = Vec::<(u64, SamplerEvent)>::new();
+    let mut hatevents = Vec::<(u64, SamplerEvent)>::new();
+    let mut hat2events = Vec::<(u64, SamplerEvent)>::new();
+    let mut bassevents = Vec::<(u64, SamplerEvent)>::new();
 
-    let mut eventsfifth = Vec::<(u64, NoteEvent)>::new();
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(0.0).time(), NoteEvent::NoteOn(2.5*220.0)));
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(2.0).time(), NoteEvent::NoteOn(1.5*440.0)));
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(3.0).time(), NoteEvent::NoteOff));
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(4.0).time(), NoteEvent::NoteOn(1.5*220.0)));
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(5.0).time(), NoteEvent::NoteOff));
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(6.0).time(), NoteEvent::NoteOn(1.5*440.0)));
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(7.0).time(), NoteEvent::NoteOff));
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(8.0).time(), NoteEvent::NoteOn(1.5*220.0)));
-    eventsfifth.push((m.add_bars(0.0).add_sixteenths(16.0).time(), NoteEvent::NoteOff));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(0.0).time(), NoteEvent::NoteOn(1.5*440.0)));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(2.0).time(), NoteEvent::NoteOn(1.5*220.0)));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(3.0).time(), NoteEvent::NoteOff));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(4.0).time(), NoteEvent::NoteOn(1.5*440.0)));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(5.0).time(), NoteEvent::NoteOff));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(6.0).time(), NoteEvent::NoteOn(1.5*220.0)));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(7.0).time(), NoteEvent::NoteOff));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(8.0).time(), NoteEvent::NoteOn(1.5*440.0)));
-    eventsfifth.push((m.add_bars(1.0).add_sixteenths(16.0).time(), NoteEvent::NoteOff));
+    let mut notes_a = Vec::<(u64, NoteEvent)>::new();
+    let mut notes_b = Vec::<(u64, NoteEvent)>::new();
+    let mut notes_c = Vec::<(u64, NoteEvent)>::new();
+    let mut notes_d = Vec::<(u64, NoteEvent)>::new();
 
-    let es5 = EventSource::new(eventsfifth, c.clone());
-    let osc5 = Oscillator::new(c.clone(), es5.clone(), ConstSignal::new(c.clone(), 0.5));
-    let wtp5 = ConstSignal::new(c.clone(), 0.0);
-    let wave5 = Wave::triangle();
-    let wavetable5 = WaveTable::new(vec![wave5]);
-    let env5 = Envelope::new(c.clone(), es5.clone());
-    let n5 = MonoSynth::new(c.clone(), wavetable5.clone(), osc5.clone(), wtp5.clone(), env5.clone());
-    let gn5 = Gain::new(c.clone(), MonoToStereo::new(c.clone(), n5.clone()), ConstSignal::new(c.clone(), decibels(0.0)));
+    let mut m = TimeCalculator::new(160.0);
+    for bar in 0..8 {
+        // TODO: instead of adding bars everywhere just add a bar to m
+        let bass_speed = {
+            if bar % 2 == 0 {
+                1.0
+            } else {
+                1.5
+            }
+        };
+        bassevents.push((m.time(), SamplerEvent::PlayAtSpeed(bass_speed)));
+        for beat in 0..4 {
+            if (bar % 2 == 0 && beat == 0) || (bar % 2 == 1 && beat == 1) || (bar % 4 == 1 && beat == 3)  {
+                kickevents.push((m.add_quarters(beat as f64).time(), SamplerEvent::Play));
+            }
+            if beat == 2 {
+                snareevents.push((m.add_quarters(beat as f64).time(), SamplerEvent::Play));
+            }
+        }
+        for eigth in 0..8 {
+            hatevents.push((m.add_eigths(eigth as f64).time(), SamplerEvent::Play));
+            if bar >= 4 {
+                hat2events.push((m.add_eigths(eigth as f64).add_sixteenths(1.0).time(), SamplerEvent::Play));
+            }
+        }
 
-    let es = EventSource::new(events, c.clone());
-    //let n = (StupidOsc::new(c.clone(), es.clone()));
-    let wave = Wave::saw();
-    let wavetable = WaveTable::new(vec![wave]);
-    let detune_multiplier_1 = ConstSignal::new(c.clone(), 1.01);
-    let detune_multiplier_2 = ConstSignal::new(c.clone(), 0.98);
-    let wavetable_position = ConstSignal::new(c.clone(), 0.0);
-    let oscillator1 = Oscillator::new(c.clone(), es.clone(), detune_multiplier_1.clone());
-    let oscillator2 = Oscillator::new(c.clone(), es.clone(), detune_multiplier_2.clone());
-    let envelope = Envelope::new(c.clone(), es.clone());
-    let n1 = MonoSynth::new(c.clone(), wavetable.clone(), oscillator1.clone(), wavetable_position.clone(), envelope.clone());
-    let n2 = MonoSynth::new(c.clone(), wavetable.clone(), oscillator2.clone(), wavetable_position.clone(), envelope.clone());
+        const E1_FREQ : f32 = 41.20;
+        let half_step : f32 = 2.0_f32.powf(1.0/12.0);
 
-    let n1s = MonoToStereo::new(c.clone(), n1.clone());
-    let n2s = MonoToStereo::new(c.clone(), n2.clone());
+        match bar % 2 {
+            0 => {
+                // i7
+                notes_a.push((m.time(), NoteEvent::NoteOn(4.0*E1_FREQ)));
+                notes_a.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-    let left = ConstSignal::new(c.clone(), -0.5);
-    let right = ConstSignal::new(c.clone(), 0.5);
+                notes_b.push((m.time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(3.0) )));
+                notes_b.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-    let nn1 = Pan::new(c.clone(), n1s, left);
-    let nn2 = Pan::new(c.clone(), n2s, right);
+                notes_c.push((m.time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(7.0) )));
+                notes_c.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-    let noise = WhiteNoise::new(c.clone());
-    let noise_gained = Gain::new(c.clone(), noise.clone(), envelope.clone());
+                notes_d.push((m.time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(10.0))));
+                notes_d.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
+            },
+            1 => {
+                let fifth = half_step.powf(7.0);
+                // i5
+                notes_a.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ)));
+                notes_a.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-    let nn1shaped = WaveShaperEffect::new(
-            c.clone(),
-            Gain::new(c.clone(), nn1.clone(), ConstSignal::new(c.clone(), decibels(0.0))),
-            HardClipper::new()
-        );
+                notes_a.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ)));
+                notes_a.push((m.add_quarters(4.0).time(), NoteEvent::NoteOff));
 
-    let nn2shaped = WaveShaperEffect::new(
-            c.clone(),
-            Gain::new(c.clone(), nn2.clone(), ConstSignal::new(c.clone(), decibels(0.0))),
-            HardClipper::new()
-        );
+                notes_b.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(3.0) )));
+                notes_b.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-    let mix = Mixer::new(c.clone(), vec![nn1shaped, nn2shaped, gn5, noise_gained]);
-    let mastergain = ConstSignal::new(c.clone(), decibels(-20.0));
-    let master = Gain::new(c.clone(), mix.clone(), mastergain.clone());
+                notes_b.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(3.0) )));
+                notes_b.push((m.add_quarters(4.0).time(), NoteEvent::NoteOff));
+
+                notes_c.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(7.0) )));
+                notes_c.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
+
+                notes_c.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(7.0) )));
+                notes_c.push((m.add_quarters(4.0).time(), NoteEvent::NoteOff));
+
+                notes_d.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(10.0))));
+                notes_d.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
+
+                notes_d.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(10.0))));
+                notes_d.push((m.add_quarters(4.0).time(), NoteEvent::NoteOff));
+            },
+            _ => {
+                panic!("This will never happen!");
+            }
+        };
+        m = m.add_bars(1.0);
+    }
+
+    let (kick_l, kick_r) = files::load_wav_to_stereo("sounds/Kick.wav");
+    let kick = Gain::new(
+        c.clone(),
+        Sampler::new(c.clone(), EventSource::new(kickevents, c.clone()), kick_l, kick_r),
+        ConstSignal::new(c.clone(), decibels(6.0))
+    );
+
+    let (hat_l, hat_r) = files::load_wav_to_stereo("sounds/HiHat.wav");
+    let hihat = Sampler::new(c.clone(), EventSource::new(hatevents, c.clone()), hat_l, hat_r);
+
+    let (hat2_l, hat2_r) = files::load_wav_to_stereo("sounds/HiHat2.wav");
+    let hihat2 = Sampler::new(c.clone(), EventSource::new(hat2events, c.clone()), hat2_l, hat2_r);
+
+    let (snare_l, snare_r) = files::load_wav_to_stereo("sounds/Snare.wav");
+    let snare = Gain::new(
+        c.clone(),
+        Sampler::new(c.clone(), EventSource::new(snareevents, c.clone()), snare_l, snare_r),
+        ConstSignal::new(c.clone(), decibels(0.0))
+    );
+
+    let (bass_l, bass_r) = files::load_wav_to_stereo("sounds/808.wav");
+    let bass = Gain::new(
+        c.clone(),
+        Sampler::new(c.clone(), EventSource::new(bassevents, c.clone()), bass_l, bass_r),
+        ConstSignal::new(c.clone(), decibels(0.0))
+    );
+
+    let note_channels = vec![notes_a, notes_b, notes_c, notes_d];
+    let mut synths = Vec::<Rc<StereoEmitter>>::new();
+
+    for events in note_channels {
+        let es = EventSource::new(events, c.clone());
+        let voices = 4;
+        for voice in 0..voices {
+            let ratio = voice as f32 / (voices - 1) as f32;
+            let detune = 0.995 + 0.01 * ratio;
+            let pan = 1.0 - 2.0 * ratio;
+            let synth = Pan::new(
+                c.clone(),
+                MonoToStereo::new(
+                    c.clone(),
+                    MonoSynth::new(
+                        c.clone(),
+                        WaveTable::new(vec![Wave::saw()]),
+                        Oscillator::new(c.clone(), es.clone(), ConstSignal::new(c.clone(), detune)),
+                        // Wavetable position.
+                        ConstSignal::new(c.clone(), 0.0),
+                        Envelope::new(c.clone(), es.clone())
+                    )
+                ),
+                ConstSignal::new(c.clone(), pan)
+            );
+            synths.push(synth);
+        }
+    }
+
+    let synths_mixed = Gain::new(
+        c.clone(),
+        Mixer::new(c.clone(), synths),
+        ConstSignal::new(c.clone(), decibels(-10.0))
+    );
+
+    let mix = Mixer::new(c.clone(), vec![kick, hihat, hihat2, snare, bass, synths_mixed]);
+    let master = Gain::new(
+        c.clone(),
+        mix.clone(),
+        ConstSignal::new(c.clone(), decibels(-10.0))
+    );
+
+    fn render_audio(clock: Rc<Clock>, master: Rc<StereoEmitter>, length: usize) -> (Vec<f32>, Vec<f32>) {
+        let mut left = Vec::<f32>::new();
+        let mut right = Vec::<f32>::new();
+
+        while left.len() < length {
+            assert!(master.output().0.len() == master.output().1.len());
+            for i in 0..master.output().0.len() {
+                left.push(master.output().0[i]);
+                right.push(master.output().1[i]);
+            }
+            clock.increment();
+        }
+
+        assert!(left.len() == right.len());
+
+        left.truncate(length);
+        right.truncate(length);
+
+        (left, right)
+    }
+
+    println!("Rendering audio...");
+    let (left, right) = render_audio(c, master, TimeCalculator::new(160.0).add_bars(8.0).time() as usize);
 
     let pa = try!(pa::PortAudio::new());
     let mut settings = try!(pa.default_output_stream_settings(
@@ -137,27 +229,38 @@ fn run() -> Result<(), pa::Error> {
         ));
     settings.flags = pa::stream_flags::CLIP_OFF;
 
+    let mut clipped = false;
+
+    let mut position = 0;
 
     let callback = move |pa::OutputStreamCallbackArgs { buffer, frames, .. }| {
-        let left = master.output().0;
-        let right = master.output().1;
         assert_eq!(frames, consts::CHUNK_SIZE);
         for f in 0..frames {
-            if left[f].abs() > 1.0 || right[f].abs() > 1.0 {
-                println!("WARNING: The signal is clipping!");
+            if position < right.len() && position < left.len() {
+                let left_sample = left[position];
+                let right_sample = right[position];
+                position += 1;
+
+                if clipped == false && (left_sample.abs() > 1.0 || right_sample.abs() > 1.0) {
+                    clipped = true;
+                    println!("WARNING: The signal is clipping!");
+                }
+
+                buffer[2*f] = left_sample;
+                buffer[2*f+1] = right_sample;
+            } else {
+                buffer[2*f] = 0.0;
+                buffer[2*f+1] = 0.0;
             }
-            buffer[2*f] = left[f];
-            buffer[2*f+1] = right[f];
         }
-        c.increment();
         pa::Continue
     };
 
     let mut stream = try!(pa.open_non_blocking_stream(settings, callback));
     try!(stream.start());
 
-    println!("Playing for 5 seconds.");
-    pa.sleep(5 * 1_000);
+    println!("Playing for 20 seconds.");
+    pa.sleep(20 * 1_000);
 
     try!(stream.stop());
     try!(stream.close());

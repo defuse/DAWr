@@ -161,7 +161,7 @@ impl MonoEmitter for Oscillator {
                         },
                         NoteEvent::NoteOn(freq) => {
                             state.frequency = freq;
-                            state.position = 0.0;
+                            state.position = (rand::random::<f32>() * (WAVE_SAMPLES as f32)).floor();
                         }
                     }
                     cursor += 1
