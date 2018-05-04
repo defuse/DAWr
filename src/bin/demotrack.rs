@@ -41,7 +41,7 @@ fn run() -> Result<(), pa::Error> {
     let mut notes_d = Vec::<(u64, NoteEvent)>::new();
 
     let mut m = TimeCalculator::new(160.0);
-    for bar in 0..8 {
+    for bar in 0..16 {
         let bass_speed = {
             if bar % 2 == 0 {
                 1.0
@@ -68,46 +68,62 @@ fn run() -> Result<(), pa::Error> {
         const E1_FREQ : f32 = 41.20;
         let half_step : f32 = 2.0_f32.powf(1.0/12.0);
 
-        match bar % 2 {
+        match bar % 4 {
             0 => {
                 // i7
-                notes_a.push((m.time(), NoteEvent::NoteOn(4.0*E1_FREQ)));
+                notes_a.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ)));
                 notes_a.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-                notes_b.push((m.time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(3.0) )));
+                notes_b.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ * half_step.powf(3.0) )));
                 notes_b.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-                notes_c.push((m.time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(7.0) )));
+                notes_c.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ * half_step.powf(7.0) )));
                 notes_c.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-                notes_d.push((m.time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(10.0))));
+                notes_d.push((m.time(), NoteEvent::NoteOn(8.0*E1_FREQ * half_step.powf(10.0))));
                 notes_d.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
             },
-            1 => {
+            2 => {
+                // i7
+                for i in 0..4 {
+                    notes_a.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(4.0*E1_FREQ)));
+                    notes_a.push((m.add_eighths(i as f64).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
+
+                    notes_b.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(3.0) )));
+                    notes_b.push((m.add_eighths(i as f64).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
+
+                    notes_c.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(7.0) )));
+                    notes_c.push((m.add_eighths(i as f64).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
+
+                    notes_d.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(10.0) )));
+                    notes_d.push((m.add_eighths(i as f64).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
+                }
+            },
+            1 | 3 => {
                 let fifth = half_step.powf(7.0);
                 // v7
-                notes_a.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ)));
+                notes_a.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*8.0*E1_FREQ)));
                 notes_a.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-                notes_a.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ)));
+                notes_a.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*8.0*E1_FREQ)));
                 notes_a.push((m.add_quarters(4.0).time(), NoteEvent::NoteOff));
 
-                notes_b.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(3.0) )));
+                notes_b.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*8.0*E1_FREQ * half_step.powf(3.0) )));
                 notes_b.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-                notes_b.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(3.0) )));
+                notes_b.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*8.0*E1_FREQ * half_step.powf(3.0) )));
                 notes_b.push((m.add_quarters(4.0).time(), NoteEvent::NoteOff));
 
-                notes_c.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(7.0) )));
+                notes_c.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*8.0*E1_FREQ * half_step.powf(7.0) )));
                 notes_c.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-                notes_c.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(7.0) )));
+                notes_c.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*8.0*E1_FREQ * half_step.powf(7.0) )));
                 notes_c.push((m.add_quarters(4.0).time(), NoteEvent::NoteOff));
 
-                notes_d.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(10.0))));
+                notes_d.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*8.0*E1_FREQ * half_step.powf(10.0))));
                 notes_d.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
-                notes_d.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ * half_step.powf(10.0))));
+                notes_d.push((m.add_quarters(3.0).time(), NoteEvent::NoteOn(fifth*8.0*E1_FREQ * half_step.powf(10.0))));
                 notes_d.push((m.add_quarters(4.0).time(), NoteEvent::NoteOff));
             },
             _ => {
@@ -134,7 +150,7 @@ fn run() -> Result<(), pa::Error> {
     let snare = Gain::new(
         c.clone(),
         Sampler::new(c.clone(), EventSource::new(snareevents, c.clone()), snare_l, snare_r),
-        ConstSignal::new(c.clone(), decibels(0.0))
+        ConstSignal::new(c.clone(), decibels(6.0))
     );
 
     let (bass_l, bass_r) = files::load_wav_to_stereo("sounds/808.wav");
@@ -152,7 +168,7 @@ fn run() -> Result<(), pa::Error> {
         let voices = 4;
         for voice in 0..voices {
             let ratio = voice as f32 / (voices - 1) as f32;
-            let detune = 0.995 + 0.01 * ratio;
+            let detune = 0.99 + 0.02 * ratio;
             let pan = 1.0 - 2.0 * ratio;
             let synth = Pan::new(
                 c.clone(),
@@ -187,7 +203,7 @@ fn run() -> Result<(), pa::Error> {
     );
 
     println!("Rendering audio...");
-    let (left, right) = dawr::render_audio(c, master, TimeCalculator::new(160.0).add_bars(8.0).time() as usize);
+    let (left, right) = dawr::render_audio(c, master, TimeCalculator::new(160.0).add_bars(16.0).time() as usize);
 
     let pa = try!(pa::PortAudio::new());
     let mut settings = try!(pa.default_output_stream_settings(
