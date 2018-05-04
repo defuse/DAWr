@@ -13,6 +13,8 @@ section in Rust! You can find code for this in
 
 TODO: export to wav and upload to soundcloud
 
+**WARNING:** This library doesn't have any unit tests! There are probably bugs!
+
 ## Devices
 
 In this library, devices are things that emit a signal, which can either be mono
@@ -76,4 +78,4 @@ This library is missing some really important stuff, like:
 - An equalizer.
 - MIDI support.
 - A polyphonic synth device that listens to MIDI events, based on `MonoSynth`.
-
+- Unit tests.
