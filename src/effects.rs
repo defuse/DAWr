@@ -231,9 +231,9 @@ impl HardClipper {
 
 impl WaveShaper for HardClipper {
     fn shape(&self, sample: f32) -> f32 {
-        if (sample > 1.0) {
+        if sample > 1.0 {
             1.0
-        } else if (sample < -1.0) {
+        } else if sample < -1.0 {
             -1.0
         } else {
             sample

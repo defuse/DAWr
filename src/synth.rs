@@ -1,7 +1,6 @@
 use rand;
 
 use std::rc::Rc;
-use device;
 use device::*;
 use clock::Clock;
 use events::EventSource;
@@ -103,7 +102,7 @@ impl MonoEmitter for Envelope {
                         NoteEvent::NoteOff => {
                             state.on = false;
                         },
-                        NoteEvent::NoteOn(freq) => {
+                        NoteEvent::NoteOn(_freq) => {
                             state.on = true;
                         }
                     }
@@ -248,7 +247,6 @@ impl StereoEmitter for WhiteNoise {
 
             let mut left = self.device.borrow_left_to_modify();
             let mut right = self.device.borrow_right_to_modify();
-            let mut state = self.device.borrow_state_mut();
 
             for i in 0..consts::CHUNK_SIZE {
                 left[i] = 1.0 - 2.0 * rand::random::<f32>();
