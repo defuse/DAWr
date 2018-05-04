@@ -69,3 +69,13 @@ future bass drop section in Rust! You can find code for this in
 [src/bin/demotrack.rs](src/bin/demotrack.rs). Here's what it sounds like:
 
 TODO: export to wav and upload to soundcloud
+
+## Wishlist
+
+This library is missing some really important stuff, like:
+
+- High-pass and low-pass filters.
+- An equalizer.
+- MIDI support.
+- A polyphonic synth device that listens to MIDI events, based on `MonoSynth`.
+
