@@ -84,18 +84,19 @@ fn run() -> Result<(), pa::Error> {
                 notes_d.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
             },
             2 => {
-                // i7
+                // III7
+                let shift = half_step.powf(3.0);
                 for i in 0..4 {
-                    notes_a.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(4.0*E1_FREQ)));
+                    notes_a.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(shift*8.0*E1_FREQ)));
                     notes_a.push((m.add_eighths(i as f64).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
 
-                    notes_b.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(3.0) )));
+                    notes_b.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(shift*8.0*E1_FREQ * half_step.powf(4.0) )));
                     notes_b.push((m.add_eighths(i as f64).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
 
-                    notes_c.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(7.0) )));
+                    notes_c.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(shift*8.0*E1_FREQ * half_step.powf(7.0) )));
                     notes_c.push((m.add_eighths(i as f64).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
 
-                    notes_d.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(4.0*E1_FREQ * half_step.powf(10.0) )));
+                    notes_d.push((m.add_eighths(i as f64).time(), NoteEvent::NoteOn(shift*8.0*E1_FREQ * half_step.powf(11.0) )));
                     notes_d.push((m.add_eighths(i as f64).add_sixteenths(1.0).time(), NoteEvent::NoteOff));
                 }
             },
