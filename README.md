@@ -1,5 +1,7 @@
 # DAWr
 
+[![Build Status](https://travis-ci.org/defuse/DAWr.svg?branch=master)](https://travis-ci.org/defuse/DAWr)
+
 DAWr (pronounced "door") is an audio playground for people who like to write
 Rust code. It has some features of a simple DAW, including a build-in wavetable
 synthesizer, sampler, and basic audio effects. However, it's still missing
