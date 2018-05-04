@@ -97,7 +97,7 @@ impl MonoEmitter for Envelope {
 
 
             for i in 0..chunk.len() {
-                if cursor < events.len() && events[cursor].0 == self.device.time() + i as u64 {
+                while cursor < events.len() && events[cursor].0 == self.device.time() + i as u64 {
                     match events[cursor].1 {
                         NoteEvent::NoteOff => {
                             state.on = false;
@@ -154,7 +154,7 @@ impl MonoEmitter for Oscillator {
             let mut state = self.device.borrow_state_mut();
 
             for i in 0..chunk.len() {
-                if cursor < events.len() && events[cursor].0 == self.device.time() + i as u64 {
+                while cursor < events.len() && events[cursor].0 == self.device.time() + i as u64 {
                     match events[cursor].1 {
                         NoteEvent::NoteOff => {
                             // do nothing, osc keeps running
@@ -213,19 +213,17 @@ impl MonoEmitter for MonoSynth {
             let wavetable_position = self.wavetable_position.output();
             let amplitude = self.envelope.output();
 
-            // TODO: actually implement wavetable position
             for i in 0..consts::CHUNK_SIZE {
-                output[i] = amplitude[i] * self.wavetable.waves[
-                    0
-                    ].samples[wave_position[i] as usize];
+                // For e.g. 10 waves we want it to work like:
+                //  0: [0, 0.1)
+                //  1: [0.1, 0.2),
+                //  ...
+                //  9: [0.9, 1.0] <-- this square bracket is the reason for the "max" below.
+                let mut wt_index = (wavetable_position[i].max(0.99999) * self.wavetable.waves.len() as f32).floor() as usize;
+                output[i] = amplitude[i] * self.wavetable.waves[wt_index].samples[wave_position[i] as usize];
             }
-
         }
         self.device.borrow_output()
     }
-}
-
-struct Lfo {
-
 }
 

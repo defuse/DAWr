@@ -4,6 +4,7 @@ use clock::*;
 use std::rc::Rc;
 use std::cell::*;
 use consts;
+use conversions;
 
 
 pub struct Mixer {
@@ -127,14 +128,20 @@ impl StereoEmitter for Pan {
 
             let positions = self.position.output();
 
-            // FIXME: implement a real panning algorithm
             for i in 0..consts::CHUNK_SIZE {
-                if positions[i] < -0.1 {
-                    left[i] = input_left[i] + input_right[i];
-                } else if positions[i] > 0.1 {
-                    right[i] = input_left[i] + input_right[i]
+
+                let minus3 = conversions::decibels(-3.0);
+
+                let pan_pow2 = positions[i].powf(2.0);
+                let less = minus3 - pan_pow2 * minus3;
+                let more = minus3 + pan_pow2 * (1.0 - minus3);
+
+                if positions[i] > 0.0 {
+                    left[i] = input_left[i]*less;
+                    right[i] = input_right[i]*more;
                 } else {
-                    // do nothing
+                    left[i] = input_left[i]*more;
+                    right[i] = input_right[i]*less;
                 }
             }
         }

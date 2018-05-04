@@ -12,12 +12,31 @@ pub struct EventSource<T> {
 
 impl<T> EventSource<T> {
     pub fn new(events: Vec<(u64, T)>, clock: Rc<Clock>) -> Self {
-        // TODO: sort the events by .0, just in case
+        if !Self::is_sorted(&events) {
+            panic!("Events are not sorted by time!");
+        }
         Self {
             clock: clock,
             events: events,
             cursor: Cell::new(0),
             last_time: Cell::new(consts::TIME_INFINITY)
+        }
+    }
+
+    fn is_sorted(events: &Vec<(u64, T)>) -> bool {
+        if events.len() == 0 {
+            return true;
+        } else {
+            let mut max = events[0].0;
+            for i in 1..events.len() {
+                if events[i].0 < max {
+                    //println!("{} {}", events[i].0, max);
+                    return false;
+                } else {
+                    max = events[i].0;
+                }
+            }
+            return true;
         }
     }
 
@@ -37,27 +56,5 @@ impl<T> EventSource<T> {
             end += 1;
         }
         &self.events[start..end]
-    }
-}
-
-// TODO: 4/4 only for now, add support for custom time sig later.
-pub struct MusicalTime {
-    bpm: f64
-}
-
-impl MusicalTime {
-    pub fn new(bpm: f64) -> Self {
-        Self {
-            bpm: bpm
-        }
-    }
-
-    pub fn calc(&self, bar: u32, sixteenth: u32) -> u64 {
-        assert!(1 <= bar);
-        assert!(1 <= sixteenth && sixteenth <= 16);
-        let beats_per_bar = 4.0;
-        let samples_per_sixteenth = (consts::SAMPLE_RATE as f64) * 60.0 / self.bpm / 16.0;
-        let time = (bar as f64 - 1.0) * 16.0 * samples_per_sixteenth + (sixteenth as f64 - 1.0) * samples_per_sixteenth;
-        time as u64
     }
 }
