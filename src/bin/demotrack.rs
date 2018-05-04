@@ -85,7 +85,7 @@ fn run() -> Result<(), pa::Error> {
             },
             1 => {
                 let fifth = half_step.powf(7.0);
-                // i5
+                // v7
                 notes_a.push((m.add_quarters(1.0).time(), NoteEvent::NoteOn(fifth*4.0*E1_FREQ)));
                 notes_a.push((m.add_quarters(2.0).time(), NoteEvent::NoteOff));
 
