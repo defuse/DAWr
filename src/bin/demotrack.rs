@@ -197,10 +197,14 @@ fn run() -> Result<(), pa::Error> {
     );
 
     let mix = Mixer::new(c.clone(), vec![kick, hihat, hihat2, snare, bass, synths_mixed]);
-    let master = Gain::new(
+    let master = WaveShaperEffect::new(
         c.clone(),
-        mix.clone(),
-        ConstSignal::new(c.clone(), decibels(-10.0))
+        Gain::new(
+            c.clone(),
+            mix.clone(),
+            ConstSignal::new(c.clone(), decibels(-5.0))
+        ),
+        HardClipper::new()
     );
 
     println!("Rendering audio...");
