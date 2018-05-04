@@ -210,6 +210,9 @@ fn run() -> Result<(), pa::Error> {
     println!("Rendering audio...");
     let (left, right) = dawr::render_audio(c, master, TimeCalculator::new(160.0).add_bars(16.0).time() as usize);
 
+    println!("Saving audio to Output.wav...");
+    dawr::files::save_stereo_to_wav(&left, &right, "Output.wav");
+
     let pa = try!(pa::PortAudio::new());
     let mut settings = try!(pa.default_output_stream_settings(
             2, // num channels

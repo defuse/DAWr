@@ -1,5 +1,6 @@
 use hound;
 use std::i32;
+use std::i16;
 
 pub fn load_wav_to_stereo(filename: &str) -> (Vec<f32>, Vec<f32>) {
     let mut reader = hound::WavReader::open(filename).unwrap();
@@ -27,4 +28,22 @@ pub fn load_wav_to_stereo(filename: &str) -> (Vec<f32>, Vec<f32>) {
     assert!(left.len() == right.len());
 
     (left, right)
+}
+
+pub fn save_stereo_to_wav(left: &Vec<f32>, right: &Vec<f32>, filename: &str) {
+    assert!(left.len() == right.len());
+
+    let spec = hound::WavSpec {
+        channels: 2,
+        sample_rate: 44100,
+        bits_per_sample: 16,
+        sample_format: hound::SampleFormat::Int,
+    };
+    let mut writer = hound::WavWriter::create(filename, spec).unwrap();
+
+    for i in 0..left.len() {
+        let amplitude = i16::MAX as f32;
+        writer.write_sample((left[i] * amplitude) as i16).unwrap();
+        writer.write_sample((right[i] * amplitude) as i16).unwrap();
+    }
 }
