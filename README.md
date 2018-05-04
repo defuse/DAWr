@@ -23,8 +23,8 @@ parameter. There are two important traits, `MonoEmitter` and `StereoEmitter` for
 devices which output mono or stereo respectively. There is also an `EventSource`
 type representing a collection of events that occur at specific moments in time
 (e.g. `NoteOn(frequency)` and `NoteOff`). The philosophy is that each device
-should do one simple thing, and do it well, and then more powerful devices can
-be created by chaining simpler ones.
+should do one simple thing well, and then more powerful devices can be created
+by chaining simpler ones.
 
 New devices are constructed by providing references to all of their input
 devices and references to all of the event sources they need to listen to. For
