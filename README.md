@@ -1,6 +1,7 @@
 # DAWr
 
 [![Build Status](https://travis-ci.org/defuse/DAWr.svg?branch=master)](https://travis-ci.org/defuse/DAWr)
+[![crates.io](https://img.shields.io/crates/v/dawr.svg)](https://crates.io/crates/dawr)
 
 DAWr (pronounced "door") is an audio playground for people who like to write
 Rust code. It has some features of a simple DAW, including a build-in wavetable
