@@ -1,7 +1,10 @@
 [package]
 name = "dawr"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Taylor Hornby <taylor@defuse.ca>"]
+license = "MIT"
+repository = "https://github.com/defuse/DAWr"
+description = "A DAW-like audio playground for Rust coders."
 
 [dependencies]
 portaudio = "0.7"
