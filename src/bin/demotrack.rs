@@ -58,10 +58,10 @@ fn run() -> Result<(), pa::Error> {
                 snareevents.push((m.add_quarters(beat as f64).time(), SamplerEvent::Play));
             }
         }
-        for eigth in 0..8 {
-            hatevents.push((m.add_eigths(eigth as f64).time(), SamplerEvent::Play));
+        for eights in 0..8 {
+            hatevents.push((m.add_eighths(eights as f64).time(), SamplerEvent::Play));
             if bar >= 4 {
-                hat2events.push((m.add_eigths(eigth as f64).add_sixteenths(1.0).time(), SamplerEvent::Play));
+                hat2events.push((m.add_eighths(eights as f64).add_sixteenths(1.0).time(), SamplerEvent::Play));
             }
         }
 

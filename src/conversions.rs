@@ -27,7 +27,7 @@ impl TimeCalculator {
         self.add_quarters(bars * 4.0)
     }
 
-    pub fn add_eigths(&self, eigths: f64) -> Self {
+    pub fn add_eighths(&self, eigths: f64) -> Self {
         self.add_quarters(eigths / 2.0)
     }
 
