@@ -29,7 +29,30 @@ impl Wave {
         Self { samples }
     }
 
-    // TODO: add more default types
+    pub fn saw() -> Self {
+        let mut samples = [0.0; WAVE_SAMPLES];
+        for i in 0..samples.len() {
+            samples[i] = 1.0 - 2.0*(i as f32 / (samples.len() - 1) as f32);
+        }
+        Self { samples }
+    }
+
+    pub fn triangle() -> Self {
+        let mut samples = [0.0; WAVE_SAMPLES];
+        debug_assert!(samples.len() % 2 == 0);
+        for i in 0..samples.len() {
+            if i < samples.len() / 2 {
+                samples[i] = -1.0 + 2.0 * (i as f32 / (samples.len() / 2 - 1) as f32);
+            } else {
+                samples[i] = samples[samples.len() - i - 1]
+            }
+        }
+        Self { samples }
+    }
+
+    pub fn zero() -> Self {
+        Self { samples: [0.0; WAVE_SAMPLES] }
+    }
 }
 
 #[derive(Clone)]

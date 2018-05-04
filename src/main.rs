@@ -35,30 +35,61 @@ fn run() -> Result<(), pa::Error> {
     let m = MusicalTime::new(60.0);
 
     let mut events = Vec::<(u64, NoteEvent)>::new();
-    events.push((m.calc(1, 1), NoteEvent::NoteOn(440.0)));
+    events.push((m.calc(1, 1), NoteEvent::NoteOn(220.0)));
     events.push((m.calc(1, 2), NoteEvent::NoteOff));
-    events.push((m.calc(1, 3), NoteEvent::NoteOn(880.0)));
+    events.push((m.calc(1, 3), NoteEvent::NoteOn(440.0)));
     events.push((m.calc(1, 4), NoteEvent::NoteOff));
-    events.push((m.calc(1, 5), NoteEvent::NoteOn(440.0)));
+    events.push((m.calc(1, 5), NoteEvent::NoteOn(220.0)));
     events.push((m.calc(1, 6), NoteEvent::NoteOff));
-    events.push((m.calc(1, 7), NoteEvent::NoteOn(880.0)));
+    events.push((m.calc(1, 7), NoteEvent::NoteOn(440.0)));
     events.push((m.calc(1, 8), NoteEvent::NoteOff));
-    events.push((m.calc(1, 9), NoteEvent::NoteOn(440.0)));
+    events.push((m.calc(1, 9), NoteEvent::NoteOn(220.0)));
     events.push((m.calc(1, 16), NoteEvent::NoteOff));
-    events.push((m.calc(2, 1), NoteEvent::NoteOn(880.0)));
+    events.push((m.calc(2, 1), NoteEvent::NoteOn(440.0)));
     events.push((m.calc(2, 2), NoteEvent::NoteOff));
-    events.push((m.calc(2, 3), NoteEvent::NoteOn(440.0)));
+    events.push((m.calc(2, 3), NoteEvent::NoteOn(220.0)));
     events.push((m.calc(2, 4), NoteEvent::NoteOff));
-    events.push((m.calc(2, 5), NoteEvent::NoteOn(880.0)));
+    events.push((m.calc(2, 5), NoteEvent::NoteOn(440.0)));
     events.push((m.calc(2, 6), NoteEvent::NoteOff));
-    events.push((m.calc(2, 7), NoteEvent::NoteOn(440.0)));
+    events.push((m.calc(2, 7), NoteEvent::NoteOn(220.0)));
     events.push((m.calc(2, 8), NoteEvent::NoteOff));
-    events.push((m.calc(2, 9), NoteEvent::NoteOn(880.0)));
+    events.push((m.calc(2, 9), NoteEvent::NoteOn(440.0)));
     events.push((m.calc(2, 16), NoteEvent::NoteOff));
+
+    let mut eventsfifth = Vec::<(u64, NoteEvent)>::new();
+    eventsfifth.push((m.calc(1, 1), NoteEvent::NoteOn(2.0*1.5*220.0)));
+    eventsfifth.push((m.calc(1, 2), NoteEvent::NoteOff));
+    eventsfifth.push((m.calc(1, 3), NoteEvent::NoteOn(2.0*1.5*440.0)));
+    eventsfifth.push((m.calc(1, 4), NoteEvent::NoteOff));
+    eventsfifth.push((m.calc(1, 5), NoteEvent::NoteOn(2.0*1.5*220.0)));
+    eventsfifth.push((m.calc(1, 6), NoteEvent::NoteOff));
+    eventsfifth.push((m.calc(1, 7), NoteEvent::NoteOn(2.0*1.5*440.0)));
+    eventsfifth.push((m.calc(1, 8), NoteEvent::NoteOff));
+    eventsfifth.push((m.calc(1, 9), NoteEvent::NoteOn(2.0*1.5*220.0)));
+    eventsfifth.push((m.calc(1, 16), NoteEvent::NoteOff));
+    eventsfifth.push((m.calc(2, 1), NoteEvent::NoteOn(2.0*1.5*440.0)));
+    eventsfifth.push((m.calc(2, 2), NoteEvent::NoteOff));
+    eventsfifth.push((m.calc(2, 3), NoteEvent::NoteOn(2.0*1.5*220.0)));
+    eventsfifth.push((m.calc(2, 4), NoteEvent::NoteOff));
+    eventsfifth.push((m.calc(2, 5), NoteEvent::NoteOn(2.0*1.5*440.0)));
+    eventsfifth.push((m.calc(2, 6), NoteEvent::NoteOff));
+    eventsfifth.push((m.calc(2, 7), NoteEvent::NoteOn(2.0*1.5*220.0)));
+    eventsfifth.push((m.calc(2, 8), NoteEvent::NoteOff));
+    eventsfifth.push((m.calc(2, 9), NoteEvent::NoteOn(2.0*1.5*440.0)));
+    eventsfifth.push((m.calc(2, 16), NoteEvent::NoteOff));
+
+    let es5 = Rc::new(EventSource::new(eventsfifth, c.clone()));
+    let osc5 = Rc::new(Oscillator::new(c.clone(), es5.clone(), Rc::new(ConstSignal::new(c.clone(), 0.5))));
+    let wtp5 = Rc::new(ConstSignal::new(c.clone(), 0.0));
+    let wave5 = Wave::triangle();
+    let wavetable5 = WaveTable::new(vec![wave5]);
+    let env5 = Rc::new(Envelope::new(c.clone(), es5.clone()));
+    let n5 = Rc::new(MonoSynth::new(c.clone(), wavetable5.clone(), osc5.clone(), wtp5.clone(), env5.clone()));
+    let gn5 = Rc::new(Gain::new(c.clone(), Rc::new(MonoToStereo::new(c.clone(), n5.clone())), Rc::new(ConstSignal::new(c.clone(), 1.0))));
 
     let es = Rc::new(EventSource::new(events, c.clone()));
     //let n = Rc::new(StupidOsc::new(c.clone(), es.clone()));
-    let wave = Wave::square();
+    let wave = Wave::saw();
     let wavetable = WaveTable::new(vec![wave]);
     let detune_multiplier_1 = Rc::new(ConstSignal::new(c.clone(), 1.01));
     let detune_multiplier_2 = Rc::new(ConstSignal::new(c.clone(), 0.98));
@@ -80,13 +111,19 @@ fn run() -> Result<(), pa::Error> {
 
     let nn1shaped = Rc::new(WaveShaperEffect::new(
             c.clone(),
-            Rc::new(Gain::new(c.clone(), nn1.clone(), Rc::new(ConstSignal::new(c.clone(), 8.0)))),
+            Rc::new(Gain::new(c.clone(), nn1.clone(), Rc::new(ConstSignal::new(c.clone(), 1.0)))),
             Rc::new(HardClipper { })
         ));
 
-    let mix = Rc::new(Mixer::new(c.clone(), vec![nn1shaped, nn2]));
-    let tenth = Rc::new(ConstSignal::new(c.clone(), 1.0));
-    let master = Rc::new(Gain::new(c.clone(), mix.clone(), tenth.clone()));
+    let nn2shaped = Rc::new(WaveShaperEffect::new(
+            c.clone(),
+            Rc::new(Gain::new(c.clone(), nn2.clone(), Rc::new(ConstSignal::new(c.clone(), 1.0)))),
+            Rc::new(HardClipper { })
+        ));
+
+    let mix = Rc::new(Mixer::new(c.clone(), vec![nn1shaped, nn2shaped, gn5]));
+    let mastergain = Rc::new(ConstSignal::new(c.clone(), 0.1));
+    let master = Rc::new(Gain::new(c.clone(), mix.clone(), mastergain.clone()));
 
     let pa = try!(pa::PortAudio::new());
     let mut settings = try!(pa.default_output_stream_settings(
