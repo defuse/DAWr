@@ -7,6 +7,12 @@ a lot: there's no equalizer, the sampler only works in one-shot mode, etc.
 I don't plan on adding new features for the time being, but I'd appreciate
 suggestions and pull requests!
 
+The feature set is limited, but it's enough to make a shitty future bass drop
+section in Rust! You can find code for this in
+[src/bin/demotrack.rs](src/bin/demotrack.rs). Here's what it sounds like:
+
+TODO: export to wav and upload to soundcloud
+
 ## Devices
 
 In this library, devices are things that emit a signal, which can either be mono
@@ -61,14 +67,6 @@ Here is a list of all the built-in devices:
   a mono signal.
 - `WaveShaperEffect`: Applies waveshaping (e.g. hard clipping) to a stereo
   signal.
-
-## Example
-
-The feature set is obviously pretty limited, but it's enough to make a shitty
-future bass drop section in Rust! You can find code for this in
-[src/bin/demotrack.rs](src/bin/demotrack.rs). Here's what it sounds like:
-
-TODO: export to wav and upload to soundcloud
 
 ## Wishlist
 
