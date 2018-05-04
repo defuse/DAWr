@@ -34,7 +34,7 @@ fn main() {
 // device
 
 fn run() -> Result<(), pa::Error> {
-    let c = Rc::new(Clock::new());
+    let c = Clock::new();
     let m = TimeCalculator::new(120.0);
 
     let mut events = Vec::<(u64, NoteEvent)>::new();
@@ -81,55 +81,55 @@ fn run() -> Result<(), pa::Error> {
     eventsfifth.push((m.add_bars(1.0).add_sixteenths(8.0).time(), NoteEvent::NoteOn(1.5*440.0)));
     eventsfifth.push((m.add_bars(1.0).add_sixteenths(16.0).time(), NoteEvent::NoteOff));
 
-    let es5 = Rc::new(EventSource::new(eventsfifth, c.clone()));
-    let osc5 = Rc::new(Oscillator::new(c.clone(), es5.clone(), Rc::new(ConstSignal::new(c.clone(), 0.5))));
-    let wtp5 = Rc::new(ConstSignal::new(c.clone(), 0.0));
+    let es5 = EventSource::new(eventsfifth, c.clone());
+    let osc5 = Oscillator::new(c.clone(), es5.clone(), ConstSignal::new(c.clone(), 0.5));
+    let wtp5 = ConstSignal::new(c.clone(), 0.0);
     let wave5 = Wave::triangle();
     let wavetable5 = WaveTable::new(vec![wave5]);
-    let env5 = Rc::new(Envelope::new(c.clone(), es5.clone()));
-    let n5 = Rc::new(MonoSynth::new(c.clone(), wavetable5.clone(), osc5.clone(), wtp5.clone(), env5.clone()));
-    let gn5 = Rc::new(Gain::new(c.clone(), Rc::new(MonoToStereo::new(c.clone(), n5.clone())), Rc::new(ConstSignal::new(c.clone(), decibels(0.0)))));
+    let env5 = Envelope::new(c.clone(), es5.clone());
+    let n5 = MonoSynth::new(c.clone(), wavetable5.clone(), osc5.clone(), wtp5.clone(), env5.clone());
+    let gn5 = Gain::new(c.clone(), MonoToStereo::new(c.clone(), n5.clone()), ConstSignal::new(c.clone(), decibels(0.0)));
 
-    let es = Rc::new(EventSource::new(events, c.clone()));
-    //let n = Rc::new(StupidOsc::new(c.clone(), es.clone()));
+    let es = (EventSource::new(events, c.clone()));
+    //let n = (StupidOsc::new(c.clone(), es.clone()));
     let wave = Wave::saw();
     let wavetable = WaveTable::new(vec![wave]);
-    let detune_multiplier_1 = Rc::new(ConstSignal::new(c.clone(), 1.01));
-    let detune_multiplier_2 = Rc::new(ConstSignal::new(c.clone(), 0.98));
-    let wavetable_position = Rc::new(ConstSignal::new(c.clone(), 0.0));
-    let oscillator1 = Rc::new(Oscillator::new(c.clone(), es.clone(), detune_multiplier_1.clone()));
-    let oscillator2 = Rc::new(Oscillator::new(c.clone(), es.clone(), detune_multiplier_2.clone()));
-    let envelope = Rc::new(Envelope::new(c.clone(), es.clone()));
-    let n1 = Rc::new(MonoSynth::new(c.clone(), wavetable.clone(), oscillator1.clone(), wavetable_position.clone(), envelope.clone()));
-    let n2 = Rc::new(MonoSynth::new(c.clone(), wavetable.clone(), oscillator2.clone(), wavetable_position.clone(), envelope.clone()));
+    let detune_multiplier_1 = (ConstSignal::new(c.clone(), 1.01));
+    let detune_multiplier_2 = (ConstSignal::new(c.clone(), 0.98));
+    let wavetable_position = (ConstSignal::new(c.clone(), 0.0));
+    let oscillator1 = (Oscillator::new(c.clone(), es.clone(), detune_multiplier_1.clone()));
+    let oscillator2 = (Oscillator::new(c.clone(), es.clone(), detune_multiplier_2.clone()));
+    let envelope = (Envelope::new(c.clone(), es.clone()));
+    let n1 = (MonoSynth::new(c.clone(), wavetable.clone(), oscillator1.clone(), wavetable_position.clone(), envelope.clone()));
+    let n2 = (MonoSynth::new(c.clone(), wavetable.clone(), oscillator2.clone(), wavetable_position.clone(), envelope.clone()));
 
-    let n1s = Rc::new(MonoToStereo::new(c.clone(), n1.clone()));
-    let n2s = Rc::new(MonoToStereo::new(c.clone(), n2.clone()));
+    let n1s = (MonoToStereo::new(c.clone(), n1.clone()));
+    let n2s = (MonoToStereo::new(c.clone(), n2.clone()));
 
-    let left = Rc::new(ConstSignal::new(c.clone(), -0.5));
-    let right = Rc::new(ConstSignal::new(c.clone(), 0.5));
+    let left = (ConstSignal::new(c.clone(), -0.5));
+    let right = (ConstSignal::new(c.clone(), 0.5));
 
-    let nn1 = Rc::new(Pan::new(c.clone(), n1s, left));
-    let nn2 = Rc::new(Pan::new(c.clone(), n2s, right));
+    let nn1 = (Pan::new(c.clone(), n1s, left));
+    let nn2 = (Pan::new(c.clone(), n2s, right));
 
-    let noise = Rc::new(WhiteNoise::new(c.clone()));
-    let noise_gained = Rc::new(Gain::new(c.clone(), noise.clone(), envelope.clone()));
+    let noise = (WhiteNoise::new(c.clone()));
+    let noise_gained = (Gain::new(c.clone(), noise.clone(), envelope.clone()));
 
-    let nn1shaped = Rc::new(WaveShaperEffect::new(
+    let nn1shaped = (WaveShaperEffect::new(
             c.clone(),
-            Rc::new(Gain::new(c.clone(), nn1.clone(), Rc::new(ConstSignal::new(c.clone(), decibels(0.0))))),
-            Rc::new(HardClipper { })
+            (Gain::new(c.clone(), nn1.clone(), (ConstSignal::new(c.clone(), decibels(0.0))))),
+            HardClipper::new()
         ));
 
-    let nn2shaped = Rc::new(WaveShaperEffect::new(
+    let nn2shaped = (WaveShaperEffect::new(
             c.clone(),
-            Rc::new(Gain::new(c.clone(), nn2.clone(), Rc::new(ConstSignal::new(c.clone(), decibels(0.0))))),
-            Rc::new(HardClipper { })
+            (Gain::new(c.clone(), nn2.clone(), (ConstSignal::new(c.clone(), decibels(0.0))))),
+            HardClipper::new()
         ));
 
-    let mix = Rc::new(Mixer::new(c.clone(), vec![nn1shaped, nn2shaped, gn5, noise_gained]));
-    let mastergain = Rc::new(ConstSignal::new(c.clone(), decibels(-20.0)));
-    let master = Rc::new(Gain::new(c.clone(), mix.clone(), mastergain.clone()));
+    let mix = (Mixer::new(c.clone(), vec![nn1shaped, nn2shaped, gn5, noise_gained]));
+    let mastergain = (ConstSignal::new(c.clone(), decibels(-20.0)));
+    let master = (Gain::new(c.clone(), mix.clone(), mastergain.clone()));
 
     let pa = try!(pa::PortAudio::new());
     let mut settings = try!(pa.default_output_stream_settings(

@@ -11,16 +11,16 @@ pub struct EventSource<T> {
 }
 
 impl<T> EventSource<T> {
-    pub fn new(events: Vec<(u64, T)>, clock: Rc<Clock>) -> Self {
+    pub fn new(events: Vec<(u64, T)>, clock: Rc<Clock>) -> Rc<Self> {
         if !Self::is_sorted(&events) {
             panic!("Events are not sorted by time!");
         }
-        Self {
+        Rc::new(Self {
             clock: clock,
             events: events,
             cursor: Cell::new(0),
             last_time: Cell::new(consts::TIME_INFINITY)
-        }
+        })
     }
 
     fn is_sorted(events: &Vec<(u64, T)>) -> bool {

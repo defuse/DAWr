@@ -80,8 +80,8 @@ struct EnvelopeState {
 }
 
 impl Envelope {
-    pub fn new (clock: Rc<Clock>, note_events: Rc<EventSource<NoteEvent>>) -> Self {
-        Self { device: MonoStateContainer::<EnvelopeState>::new(clock, EnvelopeState { on: false }), note_events }
+    pub fn new (clock: Rc<Clock>, note_events: Rc<EventSource<NoteEvent>>) -> Rc<Self> {
+        Rc::new(Self { device: MonoStateContainer::<EnvelopeState>::new(clock, EnvelopeState { on: false }), note_events })
     }
 }
 
@@ -132,12 +132,12 @@ struct OscillatorState {
 }
 
 impl Oscillator {
-    pub fn new(clock: Rc<Clock>, note_events: Rc<EventSource<NoteEvent>>, detune_multiplier: Rc<MonoEmitter>) -> Self {
-        Self {
+    pub fn new(clock: Rc<Clock>, note_events: Rc<EventSource<NoteEvent>>, detune_multiplier: Rc<MonoEmitter>) -> Rc<Self> {
+        Rc::new(Self {
             device: MonoStateContainer::<OscillatorState>::new(clock, OscillatorState { position: 0.0, frequency: 0.0 }),
             note_events,
             detune_multiplier
-        }
+        })
     }
 }
 
@@ -192,14 +192,14 @@ pub struct MonoSynth {
 }
 
 impl MonoSynth {
-    pub fn new(clock: Rc<Clock>, wavetable: WaveTable, oscillator: Rc<MonoEmitter>, wavetable_position: Rc<MonoEmitter>, envelope: Rc<MonoEmitter>) -> Self {
-        Self {
+    pub fn new(clock: Rc<Clock>, wavetable: WaveTable, oscillator: Rc<MonoEmitter>, wavetable_position: Rc<MonoEmitter>, envelope: Rc<MonoEmitter>) -> Rc<Self> {
+        Rc::new(Self {
             device: MonoStateContainer::<()>::new(clock, ()),
             wavetable,
             oscillator,
             wavetable_position,
             envelope
-        }
+        })
     }
 }
 
@@ -234,10 +234,10 @@ pub struct WhiteNoise {
 }
 
 impl WhiteNoise {
-    pub fn new(clock: Rc<Clock>) -> Self {
-        Self {
+    pub fn new(clock: Rc<Clock>) -> Rc<Self> {
+        Rc::new(Self {
             device: StereoStateContainer::new(clock, ())
-        }
+        })
     }
 }
 

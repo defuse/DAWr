@@ -1,4 +1,5 @@
 use std::cell::*;
+use std::rc::Rc;
 
 use consts;
 
@@ -7,8 +8,8 @@ pub struct Clock {
 }
 
 impl Clock {
-    pub fn new() -> Self {
-        Self { time: Cell::new(0) }
+    pub fn new() -> Rc<Self> {
+        Rc::new(Self { time: Cell::new(0) })
     }
 
     pub fn time(&self) -> u64 {

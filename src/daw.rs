@@ -13,8 +13,8 @@ pub struct Mixer {
 }
 
 impl Mixer {
-    pub fn new(clock: Rc<Clock>, inputs: Vec<Rc<StereoEmitter>>) -> Self {
-        Self { inputs: inputs, device: StereoStateContainer::<()>::new(clock, ()) }
+    pub fn new(clock: Rc<Clock>, inputs: Vec<Rc<StereoEmitter>>) -> Rc<Self> {
+        Rc::new(Self { inputs: inputs, device: StereoStateContainer::<()>::new(clock, ()) })
     }
 }
 
@@ -53,8 +53,8 @@ pub struct Gain {
 }
 
 impl Gain {
-    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, boost: Rc<MonoEmitter>) -> Self {
-        Self { device: StereoStateContainer::<()>::new(clock, ()), input, boost }
+    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, boost: Rc<MonoEmitter>) -> Rc<Self> {
+        Rc::new(Self { device: StereoStateContainer::<()>::new(clock, ()), input, boost })
     }
 }
 
@@ -85,8 +85,8 @@ pub struct ConstSignal {
 }
 
 impl ConstSignal {
-    pub fn new(clock: Rc<Clock>, value: f32) -> Self {
-        Self { device: MonoStateContainer::<()>::new(clock, ()), value: value }
+    pub fn new(clock: Rc<Clock>, value: f32) -> Rc<Self> {
+        Rc::new(Self { device: MonoStateContainer::<()>::new(clock, ()), value: value })
     }
 }
 
@@ -111,8 +111,8 @@ pub struct Pan {
 }
 
 impl Pan {
-    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, position: Rc<MonoEmitter>) -> Self {
-        Self { device: StereoStateContainer::<()>::new(clock, ()), input, position }
+    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, position: Rc<MonoEmitter>) -> Rc<Self> {
+        Rc::new(Self { device: StereoStateContainer::<()>::new(clock, ()), input, position })
     }
 }
 
@@ -155,11 +155,11 @@ pub struct MonoToStereo {
 }
 
 impl MonoToStereo {
-    pub fn new(clock: Rc<Clock>, input: Rc<MonoEmitter>) -> Self {
-        Self {
+    pub fn new(clock: Rc<Clock>, input: Rc<MonoEmitter>) -> Rc<Self> {
+        Rc::new(Self {
             device: StereoStateContainer::<()>::new(clock, ()),
             input
-        }
+        })
     }
 }
 
@@ -189,11 +189,11 @@ pub struct StereoToMono {
 }
 
 impl StereoToMono {
-    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>) -> Self {
-        Self {
+    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>) -> Rc<Self> {
+        Rc::new(Self {
             device: MonoStateContainer::<()>::new(clock, ()),
             input
-        }
+        })
     }
 }
 
@@ -220,6 +220,13 @@ pub trait WaveShaper {
 }
 
 pub struct HardClipper {
+
+}
+
+impl HardClipper {
+    pub fn new() -> Rc<Self> {
+        Rc::new(Self { })
+    }
 }
 
 impl WaveShaper for HardClipper {
@@ -241,12 +248,12 @@ pub struct WaveShaperEffect {
 }
 
 impl WaveShaperEffect {
-    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, shaper: Rc<WaveShaper>) -> Self {
-        Self {
+    pub fn new(clock: Rc<Clock>, input: Rc<StereoEmitter>, shaper: Rc<WaveShaper>) -> Rc<Self> {
+        Rc::new(Self {
             device: StereoStateContainer::<()>::new(clock, ()),
             input,
             shaper
-        }
+        })
     }
 }
 
