@@ -173,10 +173,8 @@ impl StereoEmitter for MonoToStereo {
             let mut right = self.device.borrow_right_to_modify();
 
             for i in 0..consts::CHUNK_SIZE {
-                // TODO: I'm not sure if this is the right algorithm, but when you sum the channels
-                // to mono you should recover the same signal.
-                left[i] = 0.5*output[i];
-                right[i] = 0.5*output[i];
+                left[i] = output[i];
+                right[i] = output[i];
             }
         }
         self.device.borrow_output()
