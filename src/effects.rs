@@ -207,7 +207,7 @@ impl MonoEmitter for StereoToMono {
             let right = self.input.output().1;
 
             for i in 0..consts::CHUNK_SIZE {
-                output[i] = left[i] + right[i];
+                output[i] = 0.5*(left[i] + right[i]);
             }
         }
         self.device.borrow_output()
